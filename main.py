@@ -43,10 +43,12 @@ class LSPDClerkBot(commands.Bot):
 bot = LSPDClerkBot()
 
 
-if not config.BOT_TOKEN:
-    print("Ошибка: переменная окружения BOT_TOKEN не установлена.")
-else:
+token = getattr(config, "BOT_TOKEN")
+if token:
     try:
-        bot.run(config.BOT_TOKEN)
+        bot.run(token)
     except discord.errors.LoginFailure:
         print("Ошибка: указан неверный токен бота.")
+else:
+
+    print("Ошибка: переменная окружения BOT_TOKEN не установлена.")
