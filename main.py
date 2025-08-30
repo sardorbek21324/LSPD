@@ -27,10 +27,14 @@ class LSPDClerkBot(commands.Bot):
                     print(f"  > Ошибка при загрузке модуля '{filename}': {e}")
         
         
-        guild = discord.Object(id=config.GUILD_ID)
-        self.tree.copy_global_to(guild=guild)
-        await self.tree.sync(guild=guild)
-        print("Дерево команд успешно синхронизировано с сервером.")
+        guild_id = getattr(config, "GUILD_ID", 0)
+        if guild_id:
+            guild = discord.Object(id=guild_id)
+            self.tree.copy_global_to(guild=guild)
+            await self.tree.sync(guild=guild)
+            print("Дерево команд успешно синхронизировано с сервером.")
+        else:
+            print("Ошибка: переменная окружения GUILD_ID не установлена.")
 
     
     async def on_ready(self):

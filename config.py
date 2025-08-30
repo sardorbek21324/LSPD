@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-GUILD_ID = 1214392400902889532
+GUILD_ID = int(os.getenv("GUILD_ID", "0"))
+if not GUILD_ID:
+    raise ValueError("GUILD_ID environment variable is not set")
 ADMIN_ROLES_IDS = [649993898432659478]
 LSPD_BANNER_URL = "https://i.imgur.com/nRD8HKA.png"
 ENTRY_CHANNEL_ID = 1358108999823917268
