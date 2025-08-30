@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
 GUILD_ID = 1214392400902889532
 ADMIN_ROLES_IDS = [649993898432659478]
 LSPD_BANNER_URL = "https://i.imgur.com/nRD8HKA.png"
