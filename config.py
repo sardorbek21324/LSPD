@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("MTQwMjc5NzM3NDkyNTA0NTg3Mw.GDg-2-.uJesd2R1Sw0CzQA91I5eM_8tYgsuxNd_cDn_Lk")
 GUILD_ID = 1402812210451054722
 ADMIN_ROLES_IDS = [1402812678178734140]
 LSPD_BANNER_URL = "https://i.imgur.com/nRD8HKA.png"
