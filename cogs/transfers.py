@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 import config
 import re
+import logging
 
 # =================================================================
 # ШАГ 3: МОДАЛЬНОЕ ОКНО ДЛЯ ВВОДА РАНГА
@@ -171,12 +172,27 @@ class IssueRolesButton(discord.ui.Button):
         else:
             new_nickname = f"{new_dept_name} | {current_nick}"
 
+        if new_nickname:
+            new_nickname = re.sub(r"\s+", " ", new_nickname)
+            new_nickname = re.sub(r"[\x00-\x1f\x7f]", "", new_nickname)
+            new_nickname = new_nickname.strip()
+            if len(new_nickname) > 32:
+                logging.info("Nickname truncated for %s: %r", member.id, new_nickname)
+                new_nickname = new_nickname[:32]
+            if not new_nickname:
+                new_nickname = None
+
         try:
             await member.remove_roles(old_role, reason=f"Перевод в отдел {new_dept_name}")
             await member.add_roles(new_role, reason=f"Перевод в отдел {new_dept_name}")
-            if new_nickname: await member.edit(nick=new_nickname)
         except discord.Forbidden:
             return await interaction.followup.send("Ошибка: У бота недостаточно прав для управления ролями и/или никнеймами.", ephemeral=True)
+
+        if new_nickname:
+            try:
+                await member.edit(nick=new_nickname)
+            except discord.HTTPException:
+                logging.exception("Failed to edit nickname for %s", member.id)
 
         new_embed = original_embed.copy()
         new_embed.set_field_at(5, name="Статус", value=f"Перевод завершен. Роли и ник обновлены {interaction.user.mention}.", inline=False)
