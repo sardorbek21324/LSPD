@@ -34,6 +34,19 @@ class PromotionModal(discord.ui.Modal, title="Отчет о повышении")
         await interaction.response.send_message("✅ Ваш отчет на повышение успешно отправлен.", ephemeral=True)
 
 
+class PromotionLogView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(emoji="✅", style=discord.ButtonStyle.success, custom_id="promo_log_check")
+    async def log_check(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("Отмечено.", ephemeral=True)
+
+    @discord.ui.button(label="После нулей", style=discord.ButtonStyle.secondary, custom_id="promo_log_after")
+    async def log_after(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("Отмечено.", ephemeral=True)
+
+
 class PromotionActionView(discord.ui.View):
     def __init__(self, reviewer_role_id: int):
         super().__init__(timeout=None)
@@ -62,15 +75,15 @@ class PromotionActionView(discord.ui.View):
                 applicant_mention = f"<@{applicant_id}>"
                 rank_to = original_embed.fields[2].value
                 log_role_mention = f"<@&{config.PROMOTION_LOG_ROLE_ID}>"
-                
-                
+
                 log_message = (
                     f"{log_role_mention}\n"
                     f"{interaction.user.mention} **одобрил отчет** {applicant_mention} на **{rank_to} ранг.**\n"
-                    f"{interaction.message.jump_url}\n" 
-                    f"После отправки КА оставьте реакцию ✅"
+                    f"{interaction.message.jump_url}\n"
                 )
-                await log_channel.send(log_message)
+                log_view = PromotionLogView()
+                await log_channel.send(log_message, view=log_view)
+                interaction.client.add_view(log_view)
         else:
             new_embed.color = discord.Color.red()
             new_embed.set_field_at(5, name="Статус", value=f"Отклонено: {interaction.user.mention}", inline=False)
@@ -121,4 +134,5 @@ class PromotionsCog(commands.Cog):
 async def setup(bot: commands.Bot):
     bot.add_view(PromotionPanelView(0, 0))
     bot.add_view(PromotionActionView(0))
+    bot.add_view(PromotionLogView())
     await bot.add_cog(PromotionsCog(bot))

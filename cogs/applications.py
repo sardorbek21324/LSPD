@@ -62,18 +62,35 @@ class AdminDeclineButton(discord.ui.Button):
         await original_message.edit(embed=new_embed, view=None)
         await interaction.response.send_message("Заявка успешно отклонена.", ephemeral=True)
 
-async def send_application(interaction: discord.Interaction, channel_id: int, roles_ids: list[int], embed: discord.Embed, app_type: str):
+class ApplicationAdminView(discord.ui.View):
+    def __init__(self, required_roles: list[int], app_type: str):
+        super().__init__(timeout=None)
+        self.add_item(AdminAcceptButton(required_roles, app_type=app_type))
+        self.add_item(AdminDeclineButton(required_roles))
+
+
+async def send_application(
+    interaction: discord.Interaction,
+    channel_id: int,
+    roles_ids: list[int],
+    embed: discord.Embed,
+    app_type: str,
+):
     channel = interaction.guild.get_channel(channel_id)
     if not channel:
         await interaction.response.send_message("Ошибка: Канал для заявок не найден.", ephemeral=True, delete_after=10)
         return
+
     ping_message = " ".join([f"<@&{role_id}>" for role_id in roles_ids])
     header_text = f"{ping_message} новая заявка ({app_type})! {interaction.user.mention}"
-    admin_view = discord.ui.View()
-    admin_view.add_item(AdminAcceptButton(roles_ids, app_type=app_type))
-    admin_view.add_item(AdminDeclineButton(roles_ids))
+
+    admin_view = ApplicationAdminView(roles_ids, app_type)
     await channel.send(content=header_text, embed=embed, view=admin_view)
-    await interaction.response.send_message(f"✅ Ваша заявка на {app_type} успешно отправлена!", ephemeral=True)
+    interaction.client.add_view(admin_view)
+
+    await interaction.response.send_message(
+        f"✅ Ваша заявка на {app_type} успешно отправлена!", ephemeral=True
+    )
 
 class ApplicationView(discord.ui.View):
     def __init__(self):
