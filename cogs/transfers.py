@@ -86,16 +86,18 @@ class ConfirmView(discord.ui.View):
 
         await channel.send(content=header, embed=embed, view=TransferActionView())
         await interaction.edit_original_response(content="✅ Ваш перевод успешно отправлен на рассмотрение!", view=None)
+        self.stop()
     @discord.ui.button(label="Отмена", style=discord.ButtonStyle.danger)
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(content="Перевод отменен.", view=None)
+        self.stop()
 
 # =================================================================
 # ШАГ 5: СИСТЕМА ОДОБРЕНИЯ
 # =================================================================
 class TransferActionView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=86400)
         self.approvers = set()
     def get_dept_data_from_embed(self, embed: discord.Embed):
         old_dept_name = embed.fields[2].value; new_dept_name = embed.fields[3].value
@@ -145,6 +147,7 @@ class TransferActionView(discord.ui.View):
         new_embed.set_field_at(5, name="Статус", value=f"Перевод отклонен {interaction.user.mention}.", inline=False)
         for item in self.children: item.disabled = True
         await interaction.message.edit(embed=new_embed, view=self)
+        self.stop()
 
 class IssueRolesButton(discord.ui.Button):
     def __init__(self):
@@ -198,6 +201,7 @@ class IssueRolesButton(discord.ui.Button):
         new_embed.set_field_at(5, name="Статус", value=f"Перевод завершен. Роли и ник обновлены {interaction.user.mention}.", inline=False)
         self.disabled = True
         await interaction.message.edit(embed=new_embed, view=self.view)
+        self.view.stop()
 
 # =================================================================
 # ШАГ 1: ГЛАВНАЯ ПАНЕЛЬ
@@ -233,5 +237,4 @@ class TransfersCog(commands.Cog):
 
 async def setup(bot: commands.Bot):
     bot.add_view(TransferPanelView())
-    bot.add_view(TransferActionView())
     await bot.add_cog(TransfersCog(bot))

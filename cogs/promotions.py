@@ -36,20 +36,22 @@ class PromotionModal(discord.ui.Modal, title="Отчет о повышении")
 
 class PromotionLogView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=86400)
 
     @discord.ui.button(emoji="✅", style=discord.ButtonStyle.success, custom_id="promo_log_check")
     async def log_check(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Отмечено.", ephemeral=True)
+        self.stop()
 
     @discord.ui.button(label="После нулей", style=discord.ButtonStyle.secondary, custom_id="promo_log_after")
     async def log_after(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Отмечено.", ephemeral=True)
+        self.stop()
 
 
 class PromotionActionView(discord.ui.View):
     def __init__(self, reviewer_role_id: int):
-        super().__init__(timeout=None)
+        super().__init__(timeout=86400)
         self.children[0].custom_id = f"promo_accept:{reviewer_role_id}"
         self.children[1].custom_id = f"promo_decline:{reviewer_role_id}"
 
@@ -83,12 +85,12 @@ class PromotionActionView(discord.ui.View):
                 )
                 log_view = PromotionLogView()
                 await log_channel.send(log_message, view=log_view)
-                interaction.client.add_view(log_view)
         else:
             new_embed.color = discord.Color.red()
             new_embed.set_field_at(5, name="Статус", value=f"Отклонено: {interaction.user.mention}", inline=False)
 
         await interaction.message.edit(embed=new_embed, view=self)
+        self.stop()
 
     @discord.ui.button(label="Принять", style=discord.ButtonStyle.success)
     async def accept(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -133,6 +135,4 @@ class PromotionsCog(commands.Cog):
 
 async def setup(bot: commands.Bot):
     bot.add_view(PromotionPanelView(0, 0))
-    bot.add_view(PromotionActionView(0))
-    bot.add_view(PromotionLogView())
     await bot.add_cog(PromotionsCog(bot))

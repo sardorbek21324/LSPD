@@ -94,7 +94,7 @@ class LossModal(discord.ui.Modal, title="Утеря спец. вооружени
 # =================================================================
 class RequestActionView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=86400)
 
     async def check_staff_perms(self, interaction: discord.Interaction) -> bool:
         user_roles_ids = [role.id for role in interaction.user.roles]
@@ -113,6 +113,7 @@ class RequestActionView(discord.ui.View):
 
         for item in self.children: item.disabled = True
         await interaction.message.edit(embed=new_embed, view=self)
+        self.stop()
         await interaction.response.send_message("Запрос одобрен.", ephemeral=True)
     
     @discord.ui.button(label="Отклонить", style=discord.ButtonStyle.danger, custom_id="decline_gear_request")
@@ -126,6 +127,7 @@ class RequestActionView(discord.ui.View):
 
         for item in self.children: item.disabled = True
         await interaction.message.edit(embed=new_embed, view=self)
+        self.stop()
         await interaction.response.send_message("Запрос отклонен.", ephemeral=True)
 
 
@@ -182,5 +184,4 @@ class SpecialEquipmentCog(commands.Cog):
 
 async def setup(bot: commands.Bot):
     bot.add_view(SpecialEquipmentPanelView())
-    bot.add_view(RequestActionView())
     await bot.add_cog(SpecialEquipmentCog(bot))

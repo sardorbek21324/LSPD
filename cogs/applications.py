@@ -7,9 +7,12 @@ import config
 
 class SetRankModal(discord.ui.Modal, title="Назначение ранга"):
     rank_input = discord.ui.TextInput(label="На какой ранг назначить?", placeholder="Например: 5", required=True)
-    def __init__(self, original_message: discord.Message):
+
+    def __init__(self, original_message: discord.Message, admin_view: discord.ui.View):
         super().__init__()
         self.original_message = original_message
+        self.admin_view = admin_view
+
     async def on_submit(self, interaction: discord.Interaction):
         original_embed = self.original_message.embeds[0]
         new_embed = original_embed.copy()
@@ -18,6 +21,7 @@ class SetRankModal(discord.ui.Modal, title="Назначение ранга"):
         status_text = f"Принял: {interaction.user.mention}\nНазначен ранг: **{self.rank_input.value}**"
         new_embed.add_field(name="Статус", value=status_text, inline=False)
         await self.original_message.edit(embed=new_embed, view=None)
+        self.admin_view.stop()
         await interaction.response.send_message("Заявка успешно одобрена, ранг назначен.", ephemeral=True)
 
 class AdminAcceptButton(discord.ui.Button):
@@ -31,7 +35,7 @@ class AdminAcceptButton(discord.ui.Button):
             await interaction.response.send_message("У вас нет прав для выполнения этого действия.", ephemeral=True)
             return
         if self.app_type in ["восстановление", "перевод"]:
-            await interaction.response.send_modal(SetRankModal(original_message=interaction.message))
+            await interaction.response.send_modal(SetRankModal(original_message=interaction.message, admin_view=self.view))
         else:
             original_message = interaction.message
             original_embed = original_message.embeds[0]
@@ -41,6 +45,7 @@ class AdminAcceptButton(discord.ui.Button):
             status_text = f"Принял: {interaction.user.mention}"
             new_embed.add_field(name="Статус", value=status_text, inline=False)
             await original_message.edit(embed=new_embed, view=None)
+            self.view.stop()
             await interaction.response.send_message("Заявка на вступление успешно одобрена.", ephemeral=True)
 
 class AdminDeclineButton(discord.ui.Button):
@@ -60,11 +65,12 @@ class AdminDeclineButton(discord.ui.Button):
         status_text = f"Отклонил: {interaction.user.mention}"
         new_embed.add_field(name="Статус", value=status_text, inline=False)
         await original_message.edit(embed=new_embed, view=None)
+        self.view.stop()
         await interaction.response.send_message("Заявка успешно отклонена.", ephemeral=True)
 
 class ApplicationAdminView(discord.ui.View):
     def __init__(self, required_roles: list[int], app_type: str):
-        super().__init__(timeout=None)
+        super().__init__(timeout=86400)
         self.add_item(AdminAcceptButton(required_roles, app_type=app_type))
         self.add_item(AdminDeclineButton(required_roles))
 
@@ -86,7 +92,6 @@ async def send_application(
 
     admin_view = ApplicationAdminView(roles_ids, app_type)
     await channel.send(content=header_text, embed=embed, view=admin_view)
-    interaction.client.add_view(admin_view)
 
     await interaction.response.send_message(
         f"✅ Ваша заявка на {app_type} успешно отправлена!", ephemeral=True

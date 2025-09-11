@@ -25,7 +25,7 @@ class QuestionModal(discord.ui.Modal, title="Задайте свой вопро�
 
 class QuestionActionView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=86400)
     @discord.ui.button(label="Вопрос решён", style=discord.ButtonStyle.success, custom_id="resolve_question_button")
     async def resolve_question(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_roles_ids = [role.id for role in interaction.user.roles]
@@ -50,6 +50,7 @@ class QuestionActionView(discord.ui.View):
         new_embed.add_field(name="Статус", value=f"Вопрос решил: {interaction.user.mention}", inline=False)
         button.disabled = True
         await interaction.message.edit(embed=new_embed, view=self)
+        self.stop()
         await interaction.response.send_message("Вопрос отмечен как решённый.", ephemeral=True)
 
 class QuestionPanelView(discord.ui.View):
@@ -101,5 +102,4 @@ class QuestionCog(commands.Cog):
 # Функция для регистрации кога и постоянных кнопок
 async def setup(bot: commands.Bot):
     bot.add_view(QuestionPanelView())
-    bot.add_view(QuestionActionView())
     await bot.add_cog(QuestionCog(bot))
