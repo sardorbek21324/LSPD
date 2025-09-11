@@ -80,10 +80,11 @@ class ReviewCompleteButton(discord.ui.Button):
         new_embed.add_field(name="Итог", value=f"Рассмотрел: {interaction.user.mention}", inline=False)
         self.disabled = True
         await interaction.message.edit(embed=new_embed, view=view)
+        view.stop()
         await interaction.response.send_message("Заявление отмечено как рассмотренное.", ephemeral=True)
 class ReportActionView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=86400)
         self.add_item(TakeReportButton())
 class ReportPanelView(discord.ui.View):
     def __init__(self):
@@ -134,5 +135,4 @@ class CrimeReportCog(commands.Cog):
 
 async def setup(bot: commands.Bot):
     bot.add_view(ReportPanelView())
-    bot.add_view(ReportActionView())
     await bot.add_cog(CrimeReportCog(bot))
